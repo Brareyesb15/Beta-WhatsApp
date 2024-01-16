@@ -13,21 +13,21 @@ const {
   const rimraf = require("rimraf");
   require("dotenv").config();
 const { sendDocument, sendMessage } = require("../controllers/message-controller");
-const { readJsonAgentsByNumber, readApiKeyFromFile, readAgentFromFile } = require("../repositories/json-repository");
+const { readJsonAgentsByNumber} = require("../repositories/json-repository");
 const { createQr, quitarQr } = require("../sockets/socketControllers/qrCode");
 
   class whatsAppBot {
-    constructor(sessionName, creds) {
-      this.sessionName ="whatsAppChatbot";
+    constructor(sessionName, creds, agent) {
+      this.sessionName =sessionName;
       this.donet = "";
       this.botNumber = creds;
       this.store = makeInMemoryStore({
         logger: pino().child({ level: "silent", stream: "store" }),
       });
       this.messageQueues = {};
-      this.agent = ""
+      this.agent = agent
       this.qr = ""
-      this.apiKey = ""
+      this.apiKey = sessionName
       this.start().then();
     }
     
@@ -176,8 +176,6 @@ const { createQr, quitarQr } = require("../sockets/socketControllers/qrCode");
       return m;
     }
     async start() {
-      this.apiKey = await readApiKeyFromFile()
-      this.agent = await readAgentFromFile()
       const NAME_DIR_SESSION = `${this.sessionName}_session`;
   
       const { state, saveCreds } = await useMultiFileAuthState(
@@ -191,6 +189,7 @@ const { createQr, quitarQr } = require("../sockets/socketControllers/qrCode");
         auth: state,
       });
       this.client = client;
+      this.client.logout
   
       this.store.bind(client.ev);
 

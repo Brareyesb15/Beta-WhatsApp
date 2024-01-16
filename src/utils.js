@@ -3,7 +3,6 @@ const path = require('path');
 const { readJsonAgents, updateJsonAgents, readApiKeyFromFile } = require("./repositories/json-repository");
 
 
-let instanciasBot = {};
 
 /**
  * Extracts the value associated with a key from the given text using a regular expression.
@@ -67,26 +66,8 @@ const extractAgentProperties = (text) => {
   }
 };
 
-const instanceCreation = async (chatbotId) => {
-  try {
-    let instancia = instanciasBot[chatbotId];
-
-    console.log("dentro de instancia",chatbotId)
-    let apiKey = readApiKeyFromFile()
-    let agent = 
-    instancia.apiKey = apiKey
-    instancia.agent = agent
-
-    return `bot ${chatbotId} creado`;
-  } catch (error) {
-    console.error('Error en creationBot:', error,chatbotId);
-    throw error;
-  }
-}
 
 module.exports = {
   extractValueByKey,
   extractAgentProperties,
-  instanciasBot,
-  instanceCreation
 };
