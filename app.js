@@ -18,9 +18,6 @@ app.use((req, res, next) => {
 });
 
 
-app.use(express.static(path.join(__dirname, 'frontend', 'whatsapp-bot-frontend', 'build')));
-
-
 // server.use(morgan("dev"));
 
 app.use(express.json());
