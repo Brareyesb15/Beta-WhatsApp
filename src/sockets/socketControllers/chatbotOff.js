@@ -1,4 +1,3 @@
-const { createBots } = require("../../general-configs/createBot");
 const { instanciasBot } = require("../../general-configs/instances");
 
 const chatbotOff = async (apiKey, agentId) => {

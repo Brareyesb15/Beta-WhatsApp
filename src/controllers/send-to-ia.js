@@ -3,8 +3,6 @@ const {
   readChatMemoryFromFile,
   updateChatMemory,
 } = require("../repositories/json-repository");
-const { noAgent } = require("./commands");
-const { instanciasBot } = require("../utils");
 const generalUrl = process.env.GENERAL_URL_API;
 
 let codeGPTApi;
@@ -45,7 +43,7 @@ const completion = async (message, apiKey, agentId) => {
     });
     console.log("MEssages on controller", messages);
     // Build the payload for the GPT API request
-    const response = await getCodeGPTApi().completion(agentId, messages);
+    const response = await getCodeGPTApi(apiKey).completion(agentId, messages);
 
     // Log the API response for debugging purposes
     console.log("response", response);
