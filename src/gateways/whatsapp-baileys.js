@@ -16,7 +16,6 @@ const {
   sendDocument,
   sendMessage,
 } = require("../controllers/message-controller");
-const { readJsonAgentsByNumber } = require("../repositories/json-repository");
 const eventEmitter = require("./events");
 
 class whatsAppBot {

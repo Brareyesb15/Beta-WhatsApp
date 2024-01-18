@@ -2,7 +2,6 @@ const CodeGPTApi = require("../services/code-gpt-api");
 const {
   readChatMemoryFromFile,
   updateChatMemory,
-  readJsonAgents,
 } = require("../repositories/json-repository");
 const { noAgent } = require("./commands");
 const { instanciasBot } = require("../utils");
@@ -23,25 +22,11 @@ function getCodeGPTApi(apiKey) {
  * @param {object} message - The user's message object containing sender information and text content.
  * @returns {Promise<object|string>} - Returns the assistant's response or an error object.
  */
-const completion = async (message, agentId) => {
+const completion = async (message, apiKey, agentId) => {
   try {
-    let instancia = instanciasBot[nameChatbot];
-    let apiKey = instancia.apiKey;
-    console.log("apikey on getcodeGPT", apiKey);
-
     const chatHistory = await readChatMemoryFromFile(apiKey);
 
     const number = message.sender.split("@")[0];
-
-    if (!agentId) {
-      let agents = await readJsonAgents(apiKey);
-      agentId = agents[number];
-
-      // Check again after attempting to retrieve from agents
-      if (!agentId) {
-        return await noAgent();
-      }
-    }
 
     // Update chat memory with the user's message
     updateChatMemory(number, { role: "user", content: message.text }, apiKey);
