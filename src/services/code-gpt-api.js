@@ -13,7 +13,7 @@ class CodeGPTApi {
         console.log(agentId)
             const url = `${this.generalUrl}/completion`;
             const payload = {
-                agent: "23323421321",
+                agent: "23323421321", // Cambiar esto. 
                 messages: messages,
                 stream: false,
             };

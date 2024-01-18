@@ -1,11 +1,23 @@
-const socketIO = require('socket.io');
-const { instanciasBot } = require('../utils');
-const {updateDataInFile} = require('../repositories/json-repository');
-const nameChatbot = process.env.NAME_CHATBOT;
-const { getAgents, getAgentById } = require('./socketControllers/getAgents');
-const { verifyKey } = require('./socketControllers/verifyKey');
-const { chatbotOn } = require('./socketControllers/chatbotOn');
-let ioPromise; // Declarar una promesa para la instancia io
+const socketIO = require("socket.io");
+
+const { updateDataInFile } = require("../repositories/json-repository");
+const { getAgents, getAgentById } = require("./socketControllers/getAgents");
+const { verifyKey } = require("./socketControllers/verifyKey");
+const { chatbotOn } = require("./socketControllers/chatbotOn");
+const eventEmitter = require("../gateways/events");
+const { instanciasBot } = require("../general-configs/instances");
+const { chatbotOff } = require("./socketControllers/chatbotOff");
+
+eventEmitter.on("qrRemoved", (status, sessionName) => {
+  quitarQr(status, sessionName);
+});
+
+eventEmitter.on("qrCreated", (qr, sessionName) => {
+  console.log("debería escuchar");
+  createQr(qr, sessionName);
+});
+
+let io;
 
 /**
  * Configura el socket para el servidor.
@@ -13,73 +25,46 @@ let ioPromise; // Declarar una promesa para la instancia io
  */
 const configureSocket = async (server) => {
   // Crear una instancia de Socket.IO asociada al servidor
-  const io = socketIO(server, {
+  io = socketIO(server, {
     cors: {
       origin: "http://localhost:3000", // mandar esto a .env como "frontend-url"
       methods: ["GET", "POST"],
-      credentials: true
-    }
+      credentials: true,
+    },
   });
-  io.on('connection', async(socket) => {
-    console.log('Un cliente se ha conectado');
+  io.on("connection", async (socket) => {
+    socket.on("enviarDatos", async (data) => {
+      if (data) {
+        console.log("TODAS INSTANCIAS:", instanciasBot);
+        socket.join(data.apiKey); // Unir el socket a una sala con el nombre de apiKey
+        socket.apiKey = data.apiKey;
+        await chatbotOn(data.apiKey, data.agentId);
 
-    // let instancia = instanciasBot[nameChatbot];
-    // console.log(instancia?.botNumber)
+        instanciasBot[data.apiKey].frontendConnection = true;
 
-    // socket.emit('qr', instancia?.qr)
-    // let agent = ""
-    // instancia.agent ? agent = await getAgentById(instancia.agent) : agent = null
-    // socket.emit('socketData', {
-    //   number : instancia.botNumber?.replace("@s.whatsapp.net", "") || false,
-    //   apiKey : instancia.apiKey,
-    //   agent : agent
-    // });
-
-    // Escuchar un evento 'enviarDatos' desde el cliente
-    socket.on('enviarDatos', async (data) => {
-    console.log('Datos recibidos del cliente:', data);
-  
-    if (data) {
-      let result = await chatbotOn(data.apiKey, data.agentId)
-    }
-  // if (data.apiKey) {
-   
-  //     let response = await verifyKey(data.apiKey);
-  //     if (response) {
-  //     socket.emit('socketData', {apiKey : response});
-  //     return;
-  //     }
-    
-  //   instancia.apiKey = data.apiKey;
-
-  // }
-  // let agent = ""
-  // if (data.agent) {
-  //   instancia.agent = data.agent;
-  //   agent = await getAgentById(data.agent);
-  // }
-  // agent = await  getAgentById(instancia.agent);
-  // updateDataInFile(data.apiKey,data.agent)
-
-  // socket.emit('socketData', {
-  //   number: instancia.botNumber.replace("@s.whatsapp.net", ""),
-  //   apiKey: data.apiKey ?? instancia.apiKey,
-  //   agent: agent
-  // });
-});
-
-    socket.on('requestAgents', async(data) => {
-     let agents = await getAgents()
-  
-     socket.emit("agents", agents)
-    })
+        socket.on("disconnect", () => {
+          instanciasBot[data.apiKey].frontendConnection = false;
+          console.log(
+            "Un cliente se ha desconectado",
+            instanciasBot[data.apiKey].frontendConnection
+          );
+          chatbotOff(data.apiKey);
+        });
+      }
+    });
   });
-  ioPromise = Promise.resolve(io);
 };
 
+const createQr = async (qr, name) => {
+  io.to(name).emit("qr", qr);
+};
 
+const quitarQr = async (bool, name) => {
+  // Emitir el valor booleano 'bool' al usuario específico para que deje de renderizar el código QR
+  io.to(name).emit("qr", bool);
+};
 
 module.exports = {
   configureSocket,
-  getIO: () => ioPromise, // Exporta una función para obtener la instancia io
+  createQr,
 };

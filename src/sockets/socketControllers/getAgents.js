@@ -8,7 +8,6 @@ let codeGPTApi;
 function getCodeGPTApi() {
   if (!codeGPTApi) {
     const apiKey = instanciasBot[process.env.NAME_CHATBOT].apiKey;
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!",apiKey)
     codeGPTApi = new CodeGPTApi(process.env.GENERAL_URL_API, apiKey);
   }
   return codeGPTApi;
