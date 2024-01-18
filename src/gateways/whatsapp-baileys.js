@@ -278,7 +278,7 @@ class whatsAppBot {
             try {
               console.log("key", this.apiKey);
 
-              let response = await sendMessage(msg, this.agent);
+              let response = await sendMessage(msg, this.apiKey, this.agent);
 
               msg.reply(response);
             } catch (error) {
