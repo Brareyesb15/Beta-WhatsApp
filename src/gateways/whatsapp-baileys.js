@@ -17,6 +17,7 @@ const {
   sendMessage,
 } = require("../controllers/message-controller");
 const eventEmitter = require("./events");
+const { instanciasBot } = require("../general-configs/instances");
 
 class whatsAppBot {
   constructor(sessionName, creds, agent) {
@@ -342,7 +343,6 @@ class whatsAppBot {
           console.log(
             `Device Logged Out, Please Delete Folder Session  and Scan Again.`
           );
-          if (!this.frontendConnection) return;
           const PATH_BASE = join(
             process.cwd(),
             `/Sessions/${NAME_DIR_SESSION}`
@@ -350,7 +350,10 @@ class whatsAppBot {
           rimraf(PATH_BASE, (err) => {
             if (err) return;
           });
-
+          if (!this.frontendConnection) {
+            delete instanciasBot[this.apiKey];
+            return;
+          }
           this.start();
         } else if (reason === DisconnectReason.restartRequired) {
           console.log("Restart Required, Restarting...");

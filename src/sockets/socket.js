@@ -1,8 +1,5 @@
 const socketIO = require("socket.io");
 
-const { updateDataInFile } = require("../repositories/json-repository");
-const { getAgents, getAgentById } = require("./socketControllers/getAgents");
-const { verifyKey } = require("./socketControllers/verifyKey");
 const { chatbotOn } = require("./socketControllers/chatbotOn");
 const eventEmitter = require("../gateways/events");
 const { instanciasBot } = require("../general-configs/instances");
@@ -35,11 +32,14 @@ const configureSocket = async (server) => {
   io.on("connection", async (socket) => {
     socket.on("enviarDatos", async (data) => {
       if (data) {
-        console.log("TODAS INSTANCIAS:", instanciasBot);
         socket.join(data.apiKey); // Unir el socket a una sala con el nombre de apiKey
         socket.apiKey = data.apiKey;
         await chatbotOn(data.apiKey, data.agentId);
-        io.to(data.apiKey).emit("qr", instanciasBot[data.apiKey].qr);
+        instanciasBot[data.apiKey].qr
+          ? io.to(data.apiKey).emit("qr", instanciasBot[data.apiKey].qr)
+          : io
+              .to(data.apiKey)
+              .emit("qr", +instanciasBot[data.apiKey].botNumber?.split("@")[0]);
 
         instanciasBot[data.apiKey].frontendConnection = true;
 
