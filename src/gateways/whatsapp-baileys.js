@@ -390,7 +390,11 @@ class whatsAppBot {
         this.qr = false;
         console.log("creds", client.decodeJid(client.user.id));
         this.botNumber = client.decodeJid(client.user.id);
-        eventEmitter.emit("qrRemoved", false, this.apiKey);
+        eventEmitter.emit(
+          "qrRemoved",
+          this.botNumber.split("@")[0],
+          this.apiKey
+        );
       }
 
       /** QR Code */

@@ -8,8 +8,8 @@ const eventEmitter = require("../gateways/events");
 const { instanciasBot } = require("../general-configs/instances");
 const { chatbotOff } = require("./socketControllers/chatbotOff");
 
-eventEmitter.on("qrRemoved", (status, sessionName) => {
-  quitarQr(status, sessionName);
+eventEmitter.on("qrRemoved", (number, sessionName) => {
+  quitarQr(number, sessionName);
 });
 
 eventEmitter.on("qrCreated", (qr, sessionName) => {
@@ -39,6 +39,7 @@ const configureSocket = async (server) => {
         socket.join(data.apiKey); // Unir el socket a una sala con el nombre de apiKey
         socket.apiKey = data.apiKey;
         await chatbotOn(data.apiKey, data.agentId);
+        io.to(data.apiKey).emit("qr", instanciasBot[data.apiKey].qr);
 
         instanciasBot[data.apiKey].frontendConnection = true;
 
@@ -59,9 +60,9 @@ const createQr = async (qr, name) => {
   io.to(name).emit("qr", qr);
 };
 
-const quitarQr = async (bool, name) => {
-  // Emitir el valor booleano 'bool' al usuario específico para que deje de renderizar el código QR
-  io.to(name).emit("qr", bool);
+const quitarQr = async (number, name) => {
+  number = +number;
+  io.to(name).emit("qr", number);
 };
 
 module.exports = {
