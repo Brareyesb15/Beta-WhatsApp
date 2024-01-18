@@ -240,6 +240,7 @@ class whatsAppBot {
 
           if (msg.mtype === "audioMessage") {
             // message = await receiveAudio(this.sessionName, msg.msg);
+            // acá irá una implementación de whisper.
             return;
           } else {
             message = msg.text;
@@ -276,11 +277,8 @@ class whatsAppBot {
 
             try {
               console.log("key", this.apiKey);
-              let agent = await readJsonAgentsByNumber(
-                this.sessionName,
-                msg.chat.replace("@s.whatsapp.net", "")
-              );
-              let response = await sendMessage(msg, agent ?? this.agent);
+
+              let response = await sendMessage(msg, this.agent);
 
               msg.reply(response);
             } catch (error) {
