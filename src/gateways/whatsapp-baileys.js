@@ -214,25 +214,6 @@ class whatsAppBot {
         //Ordena la data de un mensaje
         let msg = this.smsg(client, lastMessage);
 
-        if (msg.mtype === "documentWithCaptionMessage") {
-          try {
-            let agent = await readJsonAgentsByNumber(
-              this.sessionName,
-              msg.chat.replace("@s.whatsapp.net", "")
-            );
-
-            let response = await sendDocument(
-              msg,
-              client,
-              lastMessage,
-              agent ?? this.agent
-            );
-            msg.reply(response);
-          } catch (error) {
-            msg.reply(error.message);
-          }
-        }
-
         let cantMensajes;
         let mensaje;
 
