@@ -27,7 +27,12 @@ const completion = async (message, apiKey, agentId) => {
     const number = message.sender.split("@")[0];
 
     // Update chat memory with the user's message
-    updateChatMemory(number, { role: "user", content: message.text }, apiKey);
+    updateChatMemory(
+      number,
+      { role: "user", content: message.text },
+      apiKey,
+      agentId
+    );
 
     // Create an array of messages from the chat history
     let messages =
@@ -51,7 +56,12 @@ const completion = async (message, apiKey, agentId) => {
     // Process the API response and update chat memory with the assistant's message
     const data = await response;
     const text = data.replace(/^data: /, "");
-    updateChatMemory(number, { role: "assistant", content: text }, apiKey);
+    updateChatMemory(
+      number,
+      { role: "assistant", content: text },
+      apiKey,
+      agentId
+    );
 
     return text;
   } catch (error) {

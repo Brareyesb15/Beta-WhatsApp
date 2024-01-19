@@ -1,9 +1,3 @@
-const fs = require("fs");
-const path = require('path');
-const { readJsonAgents, updateJsonAgents, readApiKeyFromFile } = require("./repositories/json-repository");
-
-
-
 /**
  * Extracts the value associated with a key from the given text using a regular expression.
  *
@@ -12,11 +6,9 @@ const { readJsonAgents, updateJsonAgents, readApiKeyFromFile } = require("./repo
  * @returns {string|null} - The value associated with the key or null if not found.
  */
 function extractValueByKey(text, key) {
-  
-  
   const regex = new RegExp(`${key}\\s*:\\s*([^,\\s]+)`);
   const match = text.match(regex);
- 
+
   if (match && match[1]) {
     return match[1];
   }
@@ -38,19 +30,19 @@ const extractAgentProperties = (text) => {
     }
 
     const agentProperties = {};
-    properties.forEach(property => {
+    properties.forEach((property) => {
       const [keyWithQuotes, valueWithQuotes] = property.split(/\s*:\s*/);
-      const key = keyWithQuotes.replace(/"/g, '');
-      const cleanedValue = valueWithQuotes.replace(/^"(.*)"$/, '$1');
+      const key = keyWithQuotes.replace(/"/g, "");
+      const cleanedValue = valueWithQuotes.replace(/^"(.*)"$/, "$1");
 
-      if (['temperature', 'topk', 'maxTokens'].includes(key)) {
+      if (["temperature", "topk", "maxTokens"].includes(key)) {
         const numericValue = parseFloat(cleanedValue);
 
         if (isNaN(numericValue)) {
           throw new Error(`Invalid value for ${key}. Must be a number.`);
         }
 
-        if (key === 'temperature' && (numericValue < 0 || numericValue > 1)) {
+        if (key === "temperature" && (numericValue < 0 || numericValue > 1)) {
           throw new Error(`Invalid value for ${key}. Must be between 0 and 1.`);
         }
 
@@ -65,7 +57,6 @@ const extractAgentProperties = (text) => {
     throw new Error(`Error extracting agent properties: ${error.message}`);
   }
 };
-
 
 module.exports = {
   extractValueByKey,

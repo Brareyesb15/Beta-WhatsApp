@@ -8,7 +8,7 @@ const path = require("path");
  * @param {object} message - The message object containing role and content.
  * @param {string} apiKey - The name or identifier of the chatbot.
  */
-const updateChatMemory = async (sender, message, apiKey) => {
+const updateChatMemory = async (sender, message, apiKey, agentId) => {
   try {
     let chatHistory = await readChatMemoryFromFile(apiKey);
 
@@ -29,7 +29,7 @@ const updateChatMemory = async (sender, message, apiKey) => {
       "../../",
       "Data",
       "Memory",
-      `${apiKey}.json`
+      `${apiKey}_${agentId}.json`
     );
 
     // Verifica si el archivo existe
@@ -54,7 +54,13 @@ const updateChatMemory = async (sender, message, apiKey) => {
 const readChatMemoryFromFile = async (apiKey) => {
   try {
     const data = fs.readFileSync(
-      path.join(__dirname, "../../", "Data", "Memory", `${apiKey}.json`),
+      path.join(
+        __dirname,
+        "../../",
+        "Data",
+        "Memory",
+        `${apiKey}_${agentId}.json`
+      ),
       "utf-8"
     );
 

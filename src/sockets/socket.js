@@ -34,7 +34,7 @@ const configureSocket = async (server) => {
       if (data) {
         socket.join(data.apiKey); // Unir el socket a una sala con el nombre de apiKey
         socket.apiKey = data.apiKey;
-        await chatbotOn(data.apiKey, data.agentId);
+        await chatbotOn(data.apiKey, data.agentId, data.agentState);
         instanciasBot[data.apiKey].qr
           ? io.to(data.apiKey).emit("qr", instanciasBot[data.apiKey].qr)
           : io
