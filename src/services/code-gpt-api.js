@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 class CodeGPTApi {
   constructor(generalUrl, apiKey) {
     this.generalUrl = generalUrl;
@@ -17,31 +19,30 @@ class CodeGPTApi {
       messages: messages,
     };
     console.log("headers", this.headers);
-    const response = await fetch(url, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(payload),
-    });
-    console.log("response", response);
+    try {
+      const response = await axios.post(url, payload, {
+        headers: this.headers,
+      });
+      console.log("response", response);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error text:", errorText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const responseText = response.data;
+      console.log("Response text:", responseText);
+
+      // Extract the content from the response text
+      const contentRegex = /"content":"(.*?)"/g;
+      let match;
+      let combinedMessage = "";
+      while ((match = contentRegex.exec(responseText)) !== null) {
+        combinedMessage += match[1];
+      }
+
+      console.log("response OK", combinedMessage);
+      return combinedMessage;
+    } catch (error) {
+      console.error("Error status:", error.response.statusText);
+      console.error("Error details:", error.response.data);
+      throw new Error(`HTTP error! status: ${error.response.data}`);
     }
-    const responseText = await response.text();
-    console.log("Response text:", responseText);
-
-    // Extract the content from the response text
-    const contentRegex = /"content":"(.*?)"/g;
-    let match;
-    let combinedMessage = "";
-    while ((match = contentRegex.exec(responseText)) !== null) {
-      combinedMessage += match[1];
-    }
-
-    console.log("response OK", combinedMessage);
-    return combinedMessage;
   }
 }
 
