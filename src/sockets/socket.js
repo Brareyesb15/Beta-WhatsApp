@@ -26,7 +26,7 @@ const configureSocket = async (server) => {
   // Crear una instancia de Socket.IO asociada al servidor
   io = socketIO(server, {
     cors: {
-      origin: frontendProd, // mandar esto a .env como "frontend-url"
+      origin: ["http://localhost:3000", frontendProd], // mandar esto a .env como "frontend-url"
       methods: ["GET", "POST"],
       credentials: true,
     },
