@@ -5,7 +5,6 @@ const chatbotOff = async (apiKey, agentId) => {
   if (!instance?.botNumber) {
     await instance.apagar();
     delete instanciasBot[apiKey];
-    console.log("Instancia apagada", instanciasBot);
   }
 };
 module.exports = {

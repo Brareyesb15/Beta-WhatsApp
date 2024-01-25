@@ -384,7 +384,7 @@ class whatsAppBotForMe {
       /** QR Code */
       if (qr) {
         this.qr = qr;
-        console.log("Debería emitir");
+
         eventEmitter.emit("qrCreated", qr, this.sessionName);
         this.botNumber = null;
       }

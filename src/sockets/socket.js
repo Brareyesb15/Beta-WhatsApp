@@ -12,7 +12,6 @@ eventEmitter.on("qrRemoved", (number, sessionName) => {
 });
 
 eventEmitter.on("qrCreated", (qr, sessionName) => {
-  console.log("debería escuchar");
   createQr(qr, sessionName);
 });
 
@@ -33,6 +32,7 @@ const configureSocket = async (server) => {
   });
   io.on("connection", async (socket) => {
     socket.on("enviarDatos", async (data) => {
+      console.log("Data connection", data);
       if (data) {
         socket.join(data.apiKey); // Unir el socket a una sala con el nombre de apiKey
         socket.apiKey = data.apiKey;
