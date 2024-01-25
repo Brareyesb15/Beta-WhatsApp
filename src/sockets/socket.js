@@ -3,6 +3,9 @@ const { chatbotOn } = require("./socketControllers/chatbotOn");
 const eventEmitter = require("../gateways/events");
 const { instanciasBot } = require("../general-configs/instances");
 const { chatbotOff } = require("./socketControllers/chatbotOff");
+require("dotenv").config();
+
+const frontendProd = process.env.FRONTEND_PROD;
 
 eventEmitter.on("qrRemoved", (number, sessionName) => {
   quitarQr(number, sessionName);
@@ -23,7 +26,7 @@ const configureSocket = async (server) => {
   // Crear una instancia de Socket.IO asociada al servidor
   io = socketIO(server, {
     cors: {
-      origin: "http://localhost:3000", // mandar esto a .env como "frontend-url"
+      origin: frontendProd, // mandar esto a .env como "frontend-url"
       methods: ["GET", "POST"],
       credentials: true,
     },
