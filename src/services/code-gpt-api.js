@@ -23,10 +23,7 @@ class CodeGPTApi {
       const response = await axios.post(url, payload, {
         headers: this.headers,
       });
-      console.log("response", response);
-
       const responseText = response.data;
-      console.log("Response text:", responseText);
 
       // Extract the content from the response text
       const contentRegex = /"content":"(.*?)"/g;
