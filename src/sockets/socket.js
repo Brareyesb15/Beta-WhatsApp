@@ -31,6 +31,9 @@ const configureSocket = async (server) => {
     },
   });
   io.on("connection", async (socket) => {
+    socket.on("killBot", async () => {
+      chatbotKill(data.apiKey);
+    });
     socket.on("enviarDatos", async (data) => {
       console.log("Data connection", data);
       if (data) {
@@ -44,10 +47,6 @@ const configureSocket = async (server) => {
               .emit("qr", +instanciasBot[data.apiKey].botNumber?.split("@")[0]);
 
         instanciasBot[data.apiKey].frontendConnection = true;
-
-        socket.on("killBot", async () => {
-          chatbotKill(data.apiKey);
-        });
 
         socket.on("disconnect", () => {
           instanciasBot[data.apiKey]
