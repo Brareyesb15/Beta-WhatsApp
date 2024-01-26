@@ -2,7 +2,7 @@ const socketIO = require("socket.io");
 const { chatbotOn } = require("./socketControllers/chatbotOn");
 const eventEmitter = require("../gateways/events");
 const { instanciasBot } = require("../general-configs/instances");
-const { chatbotOff } = require("./socketControllers/chatbotOff");
+const { chatbotOff, chatbotKill } = require("./socketControllers/chatbotOff");
 require("dotenv").config();
 
 const frontendProd = process.env.FRONTEND_PROD;
@@ -45,12 +45,15 @@ const configureSocket = async (server) => {
 
         instanciasBot[data.apiKey].frontendConnection = true;
 
+        socket.on("killBot", async () => {
+          chatbotKill(data.apiKey);
+        });
+
         socket.on("disconnect", () => {
-          instanciasBot[data.apiKey].frontendConnection = false;
-          console.log(
-            "Un cliente se ha desconectado",
-            instanciasBot[data.apiKey].frontendConnection
-          );
+          instanciasBot[data.apiKey]
+            ? (instanciasBot[data.apiKey].frontendConnection = false)
+            : null;
+          console.log("Un cliente se ha desconectado");
           chatbotOff(data.apiKey);
         });
       }

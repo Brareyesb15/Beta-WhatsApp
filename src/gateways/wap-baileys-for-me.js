@@ -325,6 +325,13 @@ class whatsAppBotForMe {
         let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
         let razon = new Boom(lastDisconnect?.error)?.message;
         if (razon === "turn off") {
+          const PATH_BASE = join(
+            process.cwd(),
+            `/Sessions/${NAME_DIR_SESSION}`
+          );
+          rimraf(PATH_BASE, (err) => {
+            if (err) return;
+          });
           console.log("apagado");
           return;
         }
