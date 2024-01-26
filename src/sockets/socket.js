@@ -31,7 +31,7 @@ const configureSocket = async (server) => {
     },
   });
   io.on("connection", async (socket) => {
-    socket.on("killBot", async () => {
+    socket.on("killBot", async (data) => {
       console.log("Entró a killBot:", data.apiKey);
       chatbotKill(data.apiKey);
     });
