@@ -1,8 +1,8 @@
 const CodeGPTApi = require("../services/code-gpt-api");
 const {
-  readChatMemoryFromFile,
-  updateChatMemory,
-} = require("../repositories/json-repository");
+  insertMessage,
+  readMessages,
+} = require("../repositories/turso/turso-repository");
 const generalUrl = process.env.GENERAL_URL_API;
 
 let codeGPTApi;
@@ -22,21 +22,16 @@ function getCodeGPTApi(apiKey) {
  */
 const completion = async (message, apiKey, agentId) => {
   try {
-    const chatHistory = await readChatMemoryFromFile(apiKey);
+    const chatHistory = await readMessages(apiKey, agentId);
 
     const number = message.sender.split("@")[0];
 
     // Update chat memory with the user's message
-    updateChatMemory(
-      number,
-      { role: "user", content: message.text },
-      apiKey,
-      agentId
-    );
+    insertMessage(number, message.text, apiKey, agentId, "user");
 
     // Create an array of messages from the chat history
     let messages =
-      chatHistory[number]?.map((msg) => ({
+      chatHistory?.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })) || [];
@@ -50,18 +45,10 @@ const completion = async (message, apiKey, agentId) => {
     // Build the payload for the GPT API request
     const response = await getCodeGPTApi(apiKey).completion(agentId, messages);
 
-    // Log the API response for debugging purposes
-    console.log("response", response);
-
     // Process the API response and update chat memory with the assistant's message
     const data = await response;
     const text = data.replace(/^data: /, "");
-    updateChatMemory(
-      number,
-      { role: "assistant", content: text },
-      apiKey,
-      agentId
-    );
+    insertMessage(number, text, apiKey, agentId, "assistant");
 
     return text;
   } catch (error) {

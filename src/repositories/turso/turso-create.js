@@ -15,14 +15,14 @@ const client = createClient({
 async function initializeDatabase() {
   try {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS mensajes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        chatbot_id INTEGER NOT NULL,
-        agente_id INTEGER NOT NULL,
+      CREATE TABLE IF NOT EXISTS messages (
+        messageId INTEGER PRIMARY KEY AUTOINCREMENT,
+        botId INTEGER NOT NULL,
+        agentId INTEGER NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        numero_contacto TEXT NOT NULL,
-        mensaje TEXT NOT NULL,
-        tipo_mensaje TEXT CHECK(tipo_mensaje IN ('recibido', 'enviado')) NOT NULL
+        phoneNumber TEXT NOT NULL,
+        content TEXT NOT NULL,
+        role TEXT NOT NULL
       )
     `;
     await client.execute(createTableSQL);
@@ -38,6 +38,4 @@ async function initializeDatabase() {
 
 module.exports = {
   initializeDatabase,
-  insertMessage,
-  readMessages,
 };

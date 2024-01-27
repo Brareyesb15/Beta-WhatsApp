@@ -12,35 +12,36 @@ const client = createClient({
 });
 
 // Función para insertar un mensaje en la base de datos
-async function insertMessage(
-  chatbot_id,
-  agente_id,
-  numero_contacto,
-  mensaje,
-  tipo_mensaje
-) {
+async function insertMessage(phoneNumber, content, botId, agentId, role) {
   try {
+    console.log("ENtro a turso?");
     const insertSQL = `
-        INSERT INTO mensajes (chatbot_id, agente_id, numero_contacto, mensaje, tipo_mensaje)
+        INSERT INTO messages (botId, agentId, phoneNumber, content, role)
         VALUES (?, ?, ?, ?, ?)
       `;
     await client.execute({
       sql: insertSQL,
-      args: [chatbot_id, agente_id, numero_contacto, mensaje, tipo_mensaje],
+      args: [botId, agentId, phoneNumber, content, role],
     });
   } catch (error) {
     console.error("An error occurred while inserting a message:", error);
   }
 }
 
-// Función para leer mensajes de la base de datos
-async function readMessages(chatbot_id) {
+// Función para leer los últimos 20 mensajes de la base de datos para un chatbot y agente específicos
+async function readMessages(apiKey, agentId) {
   try {
-    const readSQL = `SELECT * FROM mensajes WHERE chatbot_id = ?`;
+    const readSQL = `
+      SELECT * FROM messages
+      WHERE botId = ? AND agentId = ?
+      ORDER BY timestamp ASC
+      LIMIT 20
+    `;
     const result = await client.execute({
       sql: readSQL,
-      args: [chatbot_id],
+      args: [apiKey, agentId],
     });
+
     return result.rows;
   } catch (error) {
     console.error("An error occurred while reading messages:", error);
@@ -49,7 +50,6 @@ async function readMessages(chatbot_id) {
 }
 
 module.exports = {
-  initializeDatabase,
   insertMessage,
   readMessages,
 };
