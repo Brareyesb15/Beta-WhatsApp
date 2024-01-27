@@ -215,8 +215,9 @@ class whatsAppBotForMe {
         //Ordena la data de un mensaje
         let msg = this.smsg(client, lastMessage);
 
-        if (!msg.fromMe) return;
-        console.log("MI MENSAJE", msg);
+        if (msg.chat === this.botNumber) console.log("SI SON");
+
+        if (!msg.fromMe || msg.chat !== this.botNumber) return;
 
         let cantMensajes;
         let mensaje;
