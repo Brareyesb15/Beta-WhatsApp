@@ -44,13 +44,9 @@ const completion = async (message, apiKey, agentId) => {
     // Build the payload for the GPT API request
     const response = await getCodeGPTApi(apiKey).completion(agentId, messages);
 
-    // Process the API response and update chat memory with the assistant's message
-    const data = await response;
-    console.log("DATAAAAAAAAAAAAA", data);
-    const text = data.replace(/^data: /, "");
-    insertMessage(number, text, apiKey, agentId, "assistant");
+    insertMessage(number, response, apiKey, agentId, "assistant");
 
-    return text;
+    return response;
   } catch (error) {
     // Handle and log any errors that occur during the process
     console.error("Error:", error);

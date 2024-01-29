@@ -17,18 +17,14 @@ class CodeGPTApi {
     const payload = {
       agentId: agentId,
       messages: messages,
+      stream: false,
+      format: "text",
     };
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
       });
-      const responseText = response.data;
 
-      console.log(
-        "respuesta sin traducitr______________",
-        responseText.choices[0].message
-      );
-      let combinedMessage = responseText.choices[0].message.content;
       // // Extract the content from the response text
       // const contentRegex = /"content":"(.*?)"/g;
       // let match;
@@ -37,12 +33,12 @@ class CodeGPTApi {
       //   combinedMessage += match[1];
       // }
 
-      console.log("response OK", combinedMessage);
-      return combinedMessage;
+      console.log("response OK", response.data);
+      return response.data;
     } catch (error) {
-      console.error("Error status:", error.response.statusText);
-      console.error("Error details:", error.response.data);
-      throw new Error(`HTTP error! status: ${error.response.data}`);
+      // console.error("Error status:", error.response);
+      // console.error("Error details:", error.response.data.error[0]); Este es el verdadero mensaje de error.
+      throw new Error(`HTTP error! status: ${error.message}`);
     }
   }
 }
