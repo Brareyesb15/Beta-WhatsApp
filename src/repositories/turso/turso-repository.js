@@ -29,20 +29,20 @@ async function insertMessage(phoneNumber, content, botId, agentId, role) {
 }
 
 // Función para leer los últimos 20 mensajes de la base de datos para un chatbot y agente específicos
-async function readMessages(apiKey, agentId) {
+async function readMessages(apiKey, agentId, number) {
   try {
     const readSQL = `
       SELECT * FROM messages
-      WHERE botId = ? AND agentId = ?
-      ORDER BY timestamp ASC
+      WHERE botId = ? AND agentId = ? AND phoneNumber = ?
+      ORDER BY timestamp DESC
       LIMIT 20
     `;
     const result = await client.execute({
       sql: readSQL,
-      args: [apiKey, agentId],
+      args: [apiKey, agentId, number],
     });
 
-    return result.rows;
+    return result.rows.reverse();
   } catch (error) {
     console.error("An error occurred while reading messages:", error);
     return [];

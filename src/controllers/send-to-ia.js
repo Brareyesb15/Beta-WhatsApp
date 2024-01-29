@@ -22,9 +22,8 @@ function getCodeGPTApi(apiKey) {
  */
 const completion = async (message, apiKey, agentId) => {
   try {
-    const chatHistory = await readMessages(apiKey, agentId);
-
     const number = message.sender.split("@")[0];
+    const chatHistory = await readMessages(apiKey, agentId, number);
 
     // Update chat memory with the user's message
     insertMessage(number, message.text, apiKey, agentId, "user");
@@ -41,12 +40,13 @@ const completion = async (message, apiKey, agentId) => {
       role: "user",
       content: message.text,
     });
-    console.log("MEssages on controller", messages);
+
     // Build the payload for the GPT API request
     const response = await getCodeGPTApi(apiKey).completion(agentId, messages);
 
     // Process the API response and update chat memory with the assistant's message
     const data = await response;
+    console.log("DATAAAAAAAAAAAAA", data);
     const text = data.replace(/^data: /, "");
     insertMessage(number, text, apiKey, agentId, "assistant");
 

@@ -18,20 +18,24 @@ class CodeGPTApi {
       agentId: agentId,
       messages: messages,
     };
-    console.log("headers", this.headers);
     try {
       const response = await axios.post(url, payload, {
         headers: this.headers,
       });
       const responseText = response.data;
 
-      // Extract the content from the response text
-      const contentRegex = /"content":"(.*?)"/g;
-      let match;
-      let combinedMessage = "";
-      while ((match = contentRegex.exec(responseText)) !== null) {
-        combinedMessage += match[1];
-      }
+      console.log(
+        "respuesta sin traducitr______________",
+        responseText.choices[0].message
+      );
+      let combinedMessage = responseText.choices[0].message.content;
+      // // Extract the content from the response text
+      // const contentRegex = /"content":"(.*?)"/g;
+      // let match;
+      // let combinedMessage = "";
+      // while ((match = contentRegex.exec(responseText)) !== null) {
+      //   combinedMessage += match[1];
+      // }
 
       console.log("response OK", combinedMessage);
       return combinedMessage;

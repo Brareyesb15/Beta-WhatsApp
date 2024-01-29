@@ -362,7 +362,7 @@ class whatsAppBotForMe {
             if (err) return;
           });
           if (!this.frontendConnection) {
-            delete instanciasBot[this.apiKey];
+            delete instanciasBot[this.apiKey]; // Si no existe no necesitamos borrarla.
             return;
           }
           this.start();
