@@ -2,6 +2,7 @@ const { completion } = require("./send-to-ia");
 
 const sendMessage = async (msg, apiKey, agentId) => {
   try {
+    console.log("Entró a sendMessage una vez", msg);
     let response = false;
     response = await completion(msg, apiKey, agentId);
     return response;
