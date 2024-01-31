@@ -18,6 +18,7 @@ const {
 } = require("../controllers/message-controller");
 const eventEmitter = require("./events");
 const { instanciasBot } = require("../general-configs/instances");
+const { insertMessage } = require("../repositories/turso/turso-repository");
 
 class whatsAppBotForMe {
   constructor(sessionName, creds, agent) {
@@ -200,7 +201,7 @@ class whatsAppBotForMe {
 
     client.ev.on("messages.upsert", async (chatUpdate) => {
       try {
-        // Ultimo Mensaje
+        // Tomo el último mensaje.
         let lastMessage = chatUpdate.messages[0];
         if (!lastMessage.message) return;
 
@@ -215,15 +216,13 @@ class whatsAppBotForMe {
         //Ordena la data de un mensaje
         let msg = this.smsg(client, lastMessage);
 
+        //---No responder a los siguientes mensajes:
+
         if (msg.chat === this.botNumber) console.log("SI SON");
 
         if (!msg.fromMe || msg.chat !== this.botNumber) return;
 
-        let cantMensajes;
-        let mensaje;
-
         //---No responder a los siguientes mensajes:
-
         //           Historias                     Grupo                Message
         if (
           msg.chat === "status@broadcast" ||
@@ -254,42 +253,75 @@ class whatsAppBotForMe {
             this.messageQueues[chatId] = [message];
           } else {
             this.messageQueues[chatId].push(message);
-            const cantMensajes = this.messageQueues[chatId].length;
           }
         }
 
-        //Espera 20 segundo para acumular mensajes
+        // Espera 5 segundos para acumular mensajes
         setTimeout(async () => {
-          //Hay cola de mensajes con ese chat?
+          const chatId = msg.chat.replace("@s.whatsapp.net", "");
+          // Verifica si hay cola de mensajes para ese chat
           if (
-            !this.messageQueues[msg.chat.replace("@s.whatsapp.net", "")] ||
-            this.messageQueues[msg.chat.replace("@s.whatsapp.net", "")].length >
-              cantMensajes
-          )
+            !this.messageQueues[chatId] ||
+            this.messageQueues[chatId].length === 0
+          ) {
             return;
+          }
 
-          const mensajesAnidados =
-            this.messageQueues[msg.chat.replace("@s.whatsapp.net", "")].join(
-              ", "
-            );
-          this.messageQueues[
-            msg.chat.replace("@s.whatsapp.net", "")
-          ].length = 0;
+          // Une los mensajes anidados
+          const mensajesAnidados = this.messageQueues[chatId].join(" ");
+          // Guarda una copia de la cola actual para comparar después
+          const colaOriginal = [...this.messageQueues[chatId]];
+          // Limpia la cola de mensajes actual
 
           if (mensajesAnidados) {
             msg.text = mensajesAnidados;
-
             try {
-              console.log("key", this.apiKey);
-
+              await client.readMessages([msg.key]);
+              client.sendPresenceUpdate("composing", msg.key.remoteJid);
               let response = await sendMessage(msg, this.apiKey, this.agent);
-
-              msg.reply(`Your Agent says: ${response}`);
+              // Verifica si la cola ha cambiado después de enviar el mensaje
+              console.log(
+                "QUEQE",
+                this.messageQueues,
+                "Cola original",
+                colaOriginal
+              );
+              if (
+                JSON.stringify(this.messageQueues[chatId]) ===
+                JSON.stringify(colaOriginal)
+              ) {
+                // Si la cola no ha cambiado, responde con el mensaje recibido
+                let iResponse = `Your Agent says: ${response}`;
+                msg.reply(iResponse);
+                this.messageQueues[chatId].length = 0;
+                insertMessage(
+                  chatId,
+                  msg.text,
+                  this.apiKey,
+                  this.agent,
+                  "user",
+                  new Date(msg.messageTimestamp * 1000)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substring(0, 19) // Fechay hora del mensaje convertido a lo que la tabla pide.
+                );
+                insertMessage(
+                  chatId,
+                  response,
+                  this.apiKey,
+                  this.agent,
+                  "assistant",
+                  new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
+                );
+                return;
+              }
+              client.sendPresenceUpdate("pause", msg.key.remoteJid);
             } catch (error) {
+              // En caso de error, responde con el mensaje de error
               msg.reply(error.message);
             }
           }
-        }, 2000);
+        }, 5000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)
       } catch (err) {
         console.log(err);
       }
