@@ -290,23 +290,28 @@ class whatsAppBotForMe {
                 JSON.stringify(this.messageQueues[chatId]) ===
                 JSON.stringify(colaOriginal)
               ) {
+                // Si la cola no ha cambiado, responde con el mensaje recibido
+                let iResponse = `Your Agent says: ${response}`;
+                msg.reply(iResponse);
+                this.messageQueues[chatId].length = 0;
                 insertMessage(
                   chatId,
                   msg.text,
                   this.apiKey,
                   this.agent,
-                  "user"
+                  "user",
+                  new Date(msg.messageTimestamp * 1000)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substring(0, 19) // Fechay hora del mensaje convertido a lo que la tabla pide.
                 );
-                // Si la cola no ha cambiado, responde con el mensaje recibido
-                response = `Your Agent says: ${response}`;
-                msg.reply(response);
-                this.messageQueues[chatId].length = 0;
                 insertMessage(
                   chatId,
                   response,
                   this.apiKey,
                   this.agent,
-                  "assistant"
+                  "assistant",
+                  new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
                 );
                 return;
               }

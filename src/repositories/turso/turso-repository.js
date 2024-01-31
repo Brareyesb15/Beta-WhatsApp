@@ -12,16 +12,23 @@ const client = createClient({
 });
 
 // Función para insertar un mensaje en la base de datos
-async function insertMessage(phoneNumber, content, botId, agentId, role) {
+async function insertMessage(
+  phoneNumber,
+  content,
+  botId,
+  agentId,
+  role,
+  timestamp
+) {
   try {
-    console.log("ENtro a turso?");
+    console.log("Entró a Turso?");
     const insertSQL = `
-        INSERT INTO messages (botId, agentId, phoneNumber, content, role)
-        VALUES (?, ?, ?, ?, ?)
-      `;
+      INSERT INTO messages (botId, agentId, phoneNumber, content, role, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
     await client.execute({
       sql: insertSQL,
-      args: [botId, agentId, phoneNumber, content, role],
+      args: [botId, agentId, phoneNumber, content, role, timestamp],
     });
   } catch (error) {
     console.error("An error occurred while inserting a message:", error);

@@ -293,14 +293,19 @@ class whatsAppBot {
                   msg.text,
                   this.apiKey,
                   this.agent,
-                  "user"
+                  "user",
+                  new Date(msg.messageTimestamp * 1000)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substring(0, 19) // Fechay hora del mensaje convertido a lo que la tabla pide.
                 );
                 insertMessage(
                   chatId,
                   response,
                   this.apiKey,
                   this.agent,
-                  "assistant"
+                  "assistant",
+                  new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
                 );
                 return;
               }
