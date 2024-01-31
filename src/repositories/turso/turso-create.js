@@ -15,16 +15,17 @@ const client = createClient({
 async function initializeDatabase() {
   try {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS messages (
+      CREATE TABLE IF NOT EXISTS messages2 (
         messageId INTEGER PRIMARY KEY AUTOINCREMENT,
         botId INTEGER NOT NULL,
         agentId INTEGER NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        timestamp DATETIME NOT NULL,
         phoneNumber TEXT NOT NULL,
         content TEXT NOT NULL,
         role TEXT NOT NULL
       )
     `;
+
     await client.execute(createTableSQL);
     console.log('Table "mensajes" has been created or already exists.');
     return 'Table "mensajes" has been created or already exists.';

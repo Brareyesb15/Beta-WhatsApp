@@ -41,7 +41,7 @@ const completion = async (message, apiKey, agentId) => {
       role: "user",
       content: message.text,
     });
-
+    console.log("mssages", messages);
     // Build the payload for the GPT API request
     const response = await getCodeGPTApi(apiKey).completion(agentId, messages);
 
