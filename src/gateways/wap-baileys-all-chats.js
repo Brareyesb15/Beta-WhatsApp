@@ -308,6 +308,7 @@ class whatsAppBot {
             } catch (error) {
               // En caso de error, responde con el mensaje de error
               msg.reply(error.message);
+              delete this.messageQueues[chatId];
             }
           }
         }, 5000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)

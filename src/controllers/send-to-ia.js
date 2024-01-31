@@ -48,7 +48,7 @@ const completion = async (message, apiKey, agentId) => {
   } catch (error) {
     // Handle and log any errors that occur during the process
     console.error("Error:", error);
-    return error.message;
+    throw new Error(error.message);
   }
 };
 
