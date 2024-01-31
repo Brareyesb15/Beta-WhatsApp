@@ -280,12 +280,7 @@ class whatsAppBotForMe {
               client.sendPresenceUpdate("composing", msg.key.remoteJid);
               let response = await sendMessage(msg, this.apiKey, this.agent);
               // Verifica si la cola ha cambiado después de enviar el mensaje
-              console.log(
-                "QUEQE",
-                this.messageQueues,
-                "Cola original",
-                colaOriginal
-              );
+
               if (
                 JSON.stringify(this.messageQueues[chatId]) ===
                 JSON.stringify(colaOriginal)
@@ -293,7 +288,7 @@ class whatsAppBotForMe {
                 // Si la cola no ha cambiado, responde con el mensaje recibido
                 let iResponse = `Your Agent says: ${response}`;
                 msg.reply(iResponse);
-                this.messageQueues[chatId].length = 0;
+                delete this.messageQueues[chatId];
                 insertMessage(
                   chatId,
                   msg.text,
