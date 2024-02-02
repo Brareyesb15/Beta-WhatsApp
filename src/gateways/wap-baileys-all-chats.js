@@ -6,6 +6,7 @@ const {
   jidDecode,
   proto,
   getContentType,
+  delay,
 } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
@@ -270,48 +271,14 @@ class whatsAppBot {
 
           if (mensajesAnidados) {
             msg.text = mensajesAnidados;
-            try {
-              await client.readMessages([msg.key]);
-              client.sendPresenceUpdate("composing", msg.key.remoteJid);
-              let response = await sendMessage(msg, this.apiKey, this.agent);
-              // Verifica si la cola ha cambiado después de enviar el mensaje
-
-              if (
-                JSON.stringify(this.messageQueues[chatId]) ===
-                JSON.stringify(colaOriginal)
-              ) {
-                // Si la cola no ha cambiado, responde con el mensaje recibido
-                msg.reply(response);
-                delete this.messageQueues[chatId];
-                insertMessage(
-                  chatId,
-                  msg.text,
-                  this.apiKey,
-                  this.agent,
-                  "user",
-                  new Date(msg.messageTimestamp * 1000)
-                    .toISOString()
-                    .replace("T", " ")
-                    .substring(0, 19) // Fechay hora del mensaje convertido a lo que la tabla pide.
-                );
-                insertMessage(
-                  chatId,
-                  response,
-                  this.apiKey,
-                  this.agent,
-                  "assistant",
-                  new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
-                );
-                return;
-              }
-              client.sendPresenceUpdate("pause", msg.key.remoteJid);
-            } catch (error) {
-              // En caso de error, responde con el mensaje de error
-              msg.reply(error.message);
-              delete this.messageQueues[chatId];
-            }
+            await processingMessages(
+              msg,
+              chatId,
+              colaOriginal,
+              mensajesAnidados
+            );
           }
-        }, 5000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)
+        }, 8000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)
       } catch (err) {
         console.log(err);
       }
@@ -427,6 +394,62 @@ class whatsAppBot {
       client.sendMessage(jid, { text: text, ...options });
     this.apagar = async () => {
       client.end(new Error("turn off"));
+    };
+
+    let processingMessages = async (msg, chatId, colaOriginal) => {
+      try {
+        await client.readMessages([msg.key]);
+        client.sendPresenceUpdate("composing", msg.key.remoteJid);
+        let response = await sendMessage(msg, this.apiKey, this.agent);
+
+        // Calcular el retraso antes de responder
+        const resDelay = await calculateDelay(response);
+        client.sendPresenceUpdate("composing", msg.key.remoteJid);
+        await delay(resDelay); // Asegúrate de que la función 'delay' exista y funcione correctamente
+
+        // Verifica si la cola ha cambiado después de enviar el mensaje
+        if (
+          JSON.stringify(this.messageQueues[chatId]) ===
+          JSON.stringify(colaOriginal)
+        ) {
+          // Si la cola no ha cambiado, responde con el mensaje recibido después del retraso
+          setTimeout(() => {
+            msg.reply(response);
+            delete this.messageQueues[chatId];
+            insertMessage(
+              chatId,
+              msg.text,
+              this.apiKey,
+              this.agent,
+              "user",
+              new Date(msg.messageTimestamp * 1000)
+                .toISOString()
+                .replace("T", " ")
+                .substring(0, 19) // Fecha y hora del mensaje convertido a lo que la tabla pide.
+            );
+            insertMessage(
+              chatId,
+              response,
+              this.apiKey,
+              this.agent,
+              "assistant",
+              new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
+            );
+          }, resDelay);
+        }
+        client.sendPresenceUpdate("pause", msg.key.remoteJid);
+      } catch (error) {
+        msg.reply(error.message);
+        delete this.messageQueues[chatId];
+      }
+    };
+
+    const calculateDelay = async (content) => {
+      const delayPerCharacter = 70; // tiempo en ms por caracter
+      const characterCount = content.length;
+      const totalDelay = delayPerCharacter * characterCount;
+
+      return totalDelay;
     };
   }
 }
