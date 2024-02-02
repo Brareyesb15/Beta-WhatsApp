@@ -6,6 +6,7 @@ const {
   jidDecode,
   proto,
   getContentType,
+  delay,
 } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
@@ -258,63 +259,28 @@ class whatsAppBotForMe {
 
         // Espera 5 segundos para acumular mensajes
         setTimeout(async () => {
-          const chatId = msg.chat.replace("@s.whatsapp.net", "");
-          // Verifica si hay cola de mensajes para ese chat
-          if (
-            !this.messageQueues[chatId] ||
-            this.messageQueues[chatId].length === 0
-          ) {
-            return;
-          }
-
-          // Une los mensajes anidados
-          const mensajesAnidados = this.messageQueues[chatId].join(" ");
-          // Guarda una copia de la cola actual para comparar después
-          const colaOriginal = [...this.messageQueues[chatId]];
-          // Limpia la cola de mensajes actual
-
-          if (mensajesAnidados) {
-            msg.text = mensajesAnidados;
-            try {
-              await client.readMessages([msg.key]);
-              client.sendPresenceUpdate("composing", msg.key.remoteJid);
-              let response = await sendMessage(msg, this.apiKey, this.agent);
-              // Verifica si la cola ha cambiado después de enviar el mensaje
-
-              if (
-                JSON.stringify(this.messageQueues[chatId]) ===
-                JSON.stringify(colaOriginal)
-              ) {
-                // Si la cola no ha cambiado, responde con el mensaje recibido
-                let iResponse = `Your Agent says: ${response}`;
-                msg.reply(iResponse);
-                delete this.messageQueues[chatId];
-                insertMessage(
-                  chatId,
-                  msg.text,
-                  this.apiKey,
-                  this.agent,
-                  "user",
-                  new Date(msg.messageTimestamp * 1000)
-                    .toISOString()
-                    .replace("T", " ")
-                    .substring(0, 19) // Fechay hora del mensaje convertido a lo que la tabla pide.
-                );
-                insertMessage(
-                  chatId,
-                  response,
-                  this.apiKey,
-                  this.agent,
-                  "assistant",
-                  new Date().toISOString().replace("T", " ").substring(0, 19) // Fecha y hora actual en el formato deseado
-                );
+          {
+            const chatId = msg.chat.replace("@s.whatsapp.net", "");
+            if (
+              !this.messageQueues[chatId] ||
+              this.messageQueues[chatId].length === 0
+            ) {
+              {
                 return;
               }
-              client.sendPresenceUpdate("pause", msg.key.remoteJid);
-            } catch (error) {
-              // En caso de error, responde con el mensaje de error
-              msg.reply(error.message);
-              delete this.messageQueues[chatId];
+            }
+
+            const mensajesAnidados = this.messageQueues[chatId].join(" ");
+            const colaOriginal = [...this.messageQueues[chatId]];
+            const uniqueId = Date.now(); // Crear un identificador único para este conjunto de mensajes
+            this.messageQueues[chatId] = []; // Limpia la cola de mensajes aquí
+            this.messageQueues[chatId].uniqueId = uniqueId; // Almacenar el identificador único
+
+            if (mensajesAnidados) {
+              {
+                msg.text = mensajesAnidados;
+                await processingMessages(msg, chatId, colaOriginal, uniqueId);
+              }
             }
           }
         }, 5000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)
@@ -434,6 +400,72 @@ class whatsAppBotForMe {
       client.sendMessage(jid, { text: text, ...options });
     this.apagar = async () => {
       client.end(new Error("turn off"));
+    };
+    let processingMessages = async (msg, chatId, colaOriginal, uniqueId) => {
+      {
+        try {
+          {
+            await client.readMessages([msg.key]);
+            client.sendPresenceUpdate("composing", msg.key.remoteJid);
+            let response = await sendMessage(msg, this.apiKey, this.agent);
+
+            // Calcular el retraso antes de responder
+            const resDelay = await calculateDelay(response);
+            client.sendPresenceUpdate("composing", msg.key.remoteJid);
+            await delay(resDelay);
+
+            // Responder después del retraso
+            setTimeout(() => {
+              {
+                // Verifica si la cola ha cambiado o si el mensaje ya ha sido procesado
+                if (this.messageQueues[chatId].uniqueId !== uniqueId) {
+                  {
+                    return; // Si la cola ha cambiado o ya se procesó, no hacer nada
+                  }
+                }
+                let iResponse = `Your Agent says: ${response}`;
+                msg.reply(iResponse);
+                // Marcar como procesado estableciendo un nuevo identificador único
+                this.messageQueues[chatId].uniqueId = Date.now();
+                delete this.messageQueues[chatId];
+                insertMessage(
+                  chatId,
+                  msg.text,
+                  this.apiKey,
+                  this.agent,
+                  "user",
+                  new Date(msg.messageTimestamp * 1000)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substring(0, 19)
+                );
+                insertMessage(
+                  chatId,
+                  response,
+                  this.apiKey,
+                  this.agent,
+                  "assistant",
+                  new Date().toISOString().replace("T", " ").substring(0, 19)
+                );
+                client.sendPresenceUpdate("pause", msg.key.remoteJid);
+              }
+            }, resDelay);
+          }
+        } catch (error) {
+          {
+            msg.reply(error.message);
+            delete this.messageQueues[chatId];
+          }
+        }
+      }
+    };
+
+    const calculateDelay = async (content) => {
+      const delayPerCharacter = 20; // tiempo en ms por caracter, para este es más corto porque es chat contigo mismo. Bien podría incluso no tenerlo.
+      const characterCount = content.length;
+      const totalDelay = delayPerCharacter * characterCount;
+
+      return totalDelay;
     };
   }
 }
