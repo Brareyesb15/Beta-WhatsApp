@@ -47,12 +47,16 @@ const configureSocket = async (server) => {
               .to(data.apiKey)
               .emit("qr", +instanciasBot[data.apiKey].botNumber?.split("@")[0]);
 
-        instanciasBot[data.apiKey].frontendConnection = true;
+        instanciasBot[data.apiKey]?.frontendConnection = true;
 
         socket.on("disconnect", () => {
-          instanciasBot[data.apiKey]
-            ? (instanciasBot[data.apiKey].frontendConnection = false)
-            : null;
+          if (instanciasBot && instanciasBot.hasOwnProperty(data.apiKey)) {
+            instanciasBot[data.apiKey].frontendConnection = false;
+          } else {
+            console.log(
+              `No existe una instancia para la apiKey: ${data.apiKey}`
+            );
+          }
           console.log("Un cliente se ha desconectado");
           chatbotOff(data.apiKey);
         });
