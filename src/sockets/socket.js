@@ -7,6 +7,22 @@ require("dotenv").config();
 
 let io;
 
+eventEmitter.on("qrRemoved", (number, sessionName) => {
+  try {
+    quitarQr(number, sessionName);
+  } catch (error) {
+    console.error(`Error al quitar QR para la sesión: ${sessionName}`, error);
+  }
+});
+
+eventEmitter.on("qrCreated", (qr, sessionName) => {
+  try {
+    createQr(qr, sessionName);
+  } catch (error) {
+    console.error(`Error al crear QR para la sesión: ${sessionName}`, error);
+  }
+});
+
 const configureSocket = async (server) => {
   try {
     io = socketIO(server, {
@@ -19,12 +35,13 @@ const configureSocket = async (server) => {
 
     io.on("connection", async (socket) => {
       socket.on("killBot", async (data) => {
+        console.log("data", data);
         try {
           console.log("Entró a killBot:", data.apiKey);
           await chatbotKill(data.apiKey);
         } catch (error) {
           console.error(
-            `Error al matar el bot con apiKey: ${data.apiKey}`,
+            `Error al intentar matar el bot o apikey invalida`,
             error
           );
         }
@@ -42,14 +59,10 @@ const configureSocket = async (server) => {
               instanciasBot[data.apiKey].botNumber?.split("@")[0];
             io.to(data.apiKey).emit("qr", qrData);
             instanciasBot[data.apiKey].frontendConnection = true;
-          } else {
-            console.error(
-              `No se encontraron datos válidos o instancia para apiKey: ${data.apiKey}`
-            );
           }
         } catch (error) {
           console.error(
-            `Error al procesar los datos enviados: ${data.apiKey}`,
+            `Error al procesar los datos enviados para apiKey: ${data.apiKey}`,
             error
           );
         }
@@ -67,10 +80,7 @@ const configureSocket = async (server) => {
           console.log("Un cliente se ha desconectado");
           chatbotOff(data.apiKey);
         } catch (error) {
-          console.error(
-            `Error al manejar la desconexión para apiKey: ${data.apiKey}`,
-            error
-          );
+          console.error(`Error al manejar la desconexión o sin apiKey`, error);
         }
       });
     });
