@@ -455,7 +455,10 @@ class whatsAppBot {
     };
 
     const calculateDelay = async (content) => {
-      const delayPerCharacter = 70; // tiempo en ms por caracter
+      const minDelay = 90;
+      const maxDelay = 120;
+      const delayPerCharacter =
+        Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
       const characterCount = content.length;
       const totalDelay = delayPerCharacter * characterCount;
 
