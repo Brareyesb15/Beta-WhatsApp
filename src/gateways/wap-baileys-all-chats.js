@@ -181,6 +181,7 @@ class whatsAppBot {
 
     return m;
   }
+
   async start() {
     const NAME_DIR_SESSION = `${this.sessionName}_session`;
 
@@ -191,7 +192,7 @@ class whatsAppBot {
     const client = makeWASocket({
       logger: pino({ level: "silent" }),
       printQRInTerminal: false,
-      browser: ["Powered by CodeGPT with <3"],
+      browser: ["MacOS"],
       auth: state,
     });
     this.client = client;
