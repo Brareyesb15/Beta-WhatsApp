@@ -193,7 +193,7 @@ class whatsAppBotForMe {
     const client = makeWASocket({
       logger: pino({ level: "silent" }),
       printQRInTerminal: false,
-      browser: ["Powered by CodeGPT with <3"],
+      browser: ["MacOS"],
       auth: state,
     });
     this.client = client;

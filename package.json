@@ -26,7 +26,6 @@
     "@libsql/client": "^0.4.0",
     "@middy/core": "^4.6.4",
     "@whiskeysockets/baileys": "^6.3.1",
-    "api": "^6.1.1",
     "awesome-phonenumber": "^5.10.0",
     "aws-sdk": "^2.1423.0",
     "axios": "^1.6.5",
