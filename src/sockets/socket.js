@@ -3,9 +3,6 @@ const { chatbotOn } = require("./socketControllers/chatbotOn");
 const eventEmitter = require("../gateways/events");
 const { instanciasBot } = require("../general-configs/instances");
 const { chatbotOff, chatbotKill } = require("./socketControllers/chatbotOff");
-require("dotenv").config();
-
-const frontendProd = process.env.FRONTEND_PROD;
 
 eventEmitter.on("qrRemoved", (number, sessionName) => {
   quitarQr(number, sessionName);

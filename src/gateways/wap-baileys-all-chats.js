@@ -199,7 +199,6 @@ class whatsAppBot {
     this.client.logout;
 
     this.store.bind(client.ev);
-
     client.ev.on("messages.upsert", async (chatUpdate) => {
       try {
         // Tomo el último mensaje.
@@ -218,7 +217,11 @@ class whatsAppBot {
         let msg = this.smsg(client, lastMessage);
 
         //---No responder a los siguientes mensajes:
+        if (msg.chat === this.botNumber) console.log("SI SON");
 
+        if (!msg.fromMe || msg.chat !== this.botNumber) return;
+
+        //---No responder a los siguientes mensajes:
         //           Historias                     Grupo                Message
         if (
           msg.chat === "status@broadcast" ||
@@ -227,13 +230,12 @@ class whatsAppBot {
         )
           return;
 
-        //--- Solo a los siguientes mensajes se les aplicará lógica
+        //---
         if (
           (msg.mtype === "conversation" ||
             msg.mtype === "extendedTextMessage" ||
             msg.mtype === "audioMessage") &&
-          !msg.isBaileys &&
-          !msg.fromMe
+          !msg.isBaileys
         ) {
           const chatId = msg.chat.replace("@s.whatsapp.net", "");
           let message;
@@ -251,35 +253,10 @@ class whatsAppBot {
           } else {
             this.messageQueues[chatId].push(message);
           }
+
+          // Reiniciar el temporizador
+          resetTimer(msg, chatId);
         }
-
-        // Espera 5 segundos para acumular mensajes
-        setTimeout(async () => {
-          {
-            const chatId = msg.chat.replace("@s.whatsapp.net", "");
-            if (
-              !this.messageQueues[chatId] ||
-              this.messageQueues[chatId].length === 0
-            ) {
-              {
-                return;
-              }
-            }
-
-            const mensajesAnidados = this.messageQueues[chatId].join(" ");
-            const colaOriginal = [...this.messageQueues[chatId]];
-            const uniqueId = Date.now(); // Crear un identificador único para este conjunto de mensajes
-            this.messageQueues[chatId] = []; // Limpia la cola de mensajes aquí
-            this.messageQueues[chatId].uniqueId = uniqueId; // Almacenar el identificador único
-
-            if (mensajesAnidados) {
-              {
-                msg.text = mensajesAnidados;
-                await processingMessages(msg, chatId, colaOriginal, uniqueId);
-              }
-            }
-          }
-        }, 5000); // Cambio de 20000 ms (20 segundos) a 5000 ms (5 segundos)
       } catch (err) {
         console.log(err);
       }
@@ -397,43 +374,33 @@ class whatsAppBot {
       client.end(new Error("turn off"));
     };
 
-    let processingMessages = async (msg, chatId, colaOriginal, uniqueId) => {
+    let processingMessages = async (msg, chatId) => {
       {
         try {
           {
+            insertMessage(
+              chatId,
+              msg.text,
+              this.apiKey,
+              this.agent,
+              "user",
+              new Date(msg.messageTimestamp * 1000)
+                .toISOString()
+                .replace("T", " ")
+                .substring(0, 19)
+            );
             await client.readMessages([msg.key]);
-            client.sendPresenceUpdate("composing", msg.key.remoteJid);
             let response = await sendMessage(msg, this.apiKey, this.agent);
 
             // Calcular el retraso antes de responder
             const resDelay = await calculateDelay(response);
             client.sendPresenceUpdate("composing", msg.key.remoteJid);
-            await delay(resDelay);
 
             // Responder después del retraso
-            setTimeout(() => {
+            setTimeout(async () => {
               {
-                // Verifica si la cola ha cambiado o si el mensaje ya ha sido procesado
-                if (this.messageQueues[chatId].uniqueId !== uniqueId) {
-                  {
-                    return; // Si la cola ha cambiado o ya se procesó, no hacer nada
-                  }
-                }
-                msg.reply(response);
-                // Marcar como procesado estableciendo un nuevo identificador único
-                this.messageQueues[chatId].uniqueId = Date.now();
+                await msg.reply(response);
                 delete this.messageQueues[chatId];
-                insertMessage(
-                  chatId,
-                  msg.text,
-                  this.apiKey,
-                  this.agent,
-                  "user",
-                  new Date(msg.messageTimestamp * 1000)
-                    .toISOString()
-                    .replace("T", " ")
-                    .substring(0, 19)
-                );
                 insertMessage(
                   chatId,
                   response,
@@ -442,9 +409,9 @@ class whatsAppBot {
                   "assistant",
                   new Date().toISOString().replace("T", " ").substring(0, 19)
                 );
-                client.sendPresenceUpdate("pause", msg.key.remoteJid);
               }
             }, resDelay);
+            client.sendPresenceUpdate("pause", msg.key.remoteJid);
           }
         } catch (error) {
           {
@@ -456,14 +423,33 @@ class whatsAppBot {
     };
 
     const calculateDelay = async (content) => {
-      const minDelay = 90;
-      const maxDelay = 120;
+      const minDelay = 20;
+      const maxDelay = 60;
       const delayPerCharacter =
         Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
       const characterCount = content.length;
       const totalDelay = delayPerCharacter * characterCount;
 
       return totalDelay;
+    };
+    const resetTimer = async (msg, chatId) => {
+      // Si ya hay un temporizador en marcha, lo limpiamos
+      if (this.timerId) clearTimeout(this.timerId);
+
+      // Iniciamos un nuevo temporizador de 15 segundos
+      this.timerId = setTimeout(async () => {
+        // Procesar los mensajes acumulados
+        for (const chatId in this.messageQueues) {
+          const mensajesAnidados = this.messageQueues[chatId].join(" ");
+          console.log("Mensaje:", msg.text, "anidados", mensajesAnidados);
+          this.messageQueues[chatId] = []; // Limpia la cola de mensajes aquí
+
+          if (mensajesAnidados) {
+            msg.text = mensajesAnidados;
+            await processingMessages(msg, chatId);
+          }
+        }
+      }, 15000);
     };
   }
 }

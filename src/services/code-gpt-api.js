@@ -13,12 +13,13 @@ class CodeGPTApi {
 
   async completion(agentId, messages) {
     const url = `${this.generalUrl}/chat/completions`;
-
+    console.log("mensajes", messages);
     const payload = {
       agentId: agentId,
       messages: messages,
       stream: false,
       format: "text",
+      channel: "WHATSAPP",
     };
     try {
       const response = await axios.post(url, payload, {
@@ -37,7 +38,7 @@ class CodeGPTApi {
       return response.data;
     } catch (error) {
       // console.error("Error status:", error.response);
-      console.error("Error details:", error.response.data.error[0]); // Este es el verdadero mensaje de error.
+      // console.error("Error details:", error.response.data.error[0]); // Este es el verdadero mensaje de error.
       throw new Error(`HTTP error! status: ${error.message}`);
     }
   }

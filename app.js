@@ -1,9 +1,20 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 const mainRouter = require("./src/router/router");
+var Bugsnag = require("@bugsnag/js");
+var BugsnagPluginExpress = require("@bugsnag/plugin-express");
+require("dotenv").config();
+
+let apiKey = process.env.BUGSNAG_KEY;
+Bugsnag.start({
+  apiKey: apiKey,
+  plugins: [BugsnagPluginExpress],
+});
 
 const app = express();
+let middleware = Bugsnag.getPlugin("express");
+
+app.use(middleware.requestHandler);
 
 app.use(cors());
 
@@ -23,5 +34,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use(mainRouter);
+
+app.use(middleware.errorHandler);
 
 module.exports = { app, express };
