@@ -217,11 +217,7 @@ class whatsAppBot {
         let msg = this.smsg(client, lastMessage);
 
         //---No responder a los siguientes mensajes:
-        if (msg.chat === this.botNumber) console.log("SI SON");
 
-        if (!msg.fromMe || msg.chat !== this.botNumber) return;
-
-        //---No responder a los siguientes mensajes:
         //           Historias                     Grupo                Message
         if (
           msg.chat === "status@broadcast" ||
@@ -230,12 +226,13 @@ class whatsAppBot {
         )
           return;
 
-        //---
+        //--- Solo a los siguientes mensajes se les aplicará lógica
         if (
           (msg.mtype === "conversation" ||
             msg.mtype === "extendedTextMessage" ||
             msg.mtype === "audioMessage") &&
-          !msg.isBaileys
+          !msg.isBaileys &&
+          !msg.fromMe
         ) {
           const chatId = msg.chat.replace("@s.whatsapp.net", "");
           let message;
